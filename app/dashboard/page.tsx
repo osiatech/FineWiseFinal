@@ -7,6 +7,8 @@ import { RecentTransactions } from "components/dashboard/recent-transactions"
 import { ExpenseBreakdown } from "components/dashboard/expense-breakdown"
 import { AccountCards } from "components/dashboard/account-cards"
 import { useLanguage } from "lib/contexts/language-context"
+// para la ia
+import { AIInsights } from '@/components/AIInsights';
 
 export default function Dashboard() {
   const { t } = useLanguage()

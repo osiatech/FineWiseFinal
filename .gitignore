@@ -30,3 +30,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+venv/
+ai-service/__pycache__/main.cpython-312.pyc
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
