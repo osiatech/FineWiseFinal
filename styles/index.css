@@ -91,6 +91,15 @@
   }
 
 
+  .spinner-border {
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  width: 1rem;
+  height: 1rem;
+}
+
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

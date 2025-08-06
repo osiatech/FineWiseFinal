@@ -1,3 +1,11 @@
+
+
 {
-  "extends": "next/core-web-vitals"
+// …
+"rules": {
+  "no-html-link-for-pages": "off"
+  // otras reglas…
+},
+
+"extends": "next/core-web-vitals"
 }
