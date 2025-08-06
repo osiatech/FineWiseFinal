@@ -71,7 +71,9 @@ export function DashboardHeader() {
         </div>
       </div>
       <ManageAccountModal open={isManageAccountOpen} onOpenChange={setIsManageAccountOpen} />
-      <AddTransactionModal open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen} />
+      <AddTransactionModal open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen} onSave={function (): void {
+        throw new Error("Function not implemented.")
+      } } />
     </header>
   )
 }

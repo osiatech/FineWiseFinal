@@ -1,6 +1,7 @@
 import { DashboardLayout } from "components/dashboard/dashboard-layout"
 import { DashboardHeader } from "components/dashboard/dashboard-header"
 import { AccountDetailView } from "components/dashboard/account-detail-view"
+// Removed incorrect PageProps import and extension
 
 interface AccountPageProps {
   params: {

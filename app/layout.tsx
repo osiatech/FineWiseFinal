@@ -11,7 +11,7 @@ export const metadata = {
   title: "FineWise | Dashboard",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -33,8 +33,8 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className={inter.className}>
-        <ThemeProvider>
+      <body className={inter.className} suppressHydrationWarning>
+        <ThemeProvider >
           <LanguageProvider>
             <Providers>
               <AppShell>{children}</AppShell>

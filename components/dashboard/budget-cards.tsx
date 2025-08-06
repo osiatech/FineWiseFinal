@@ -4,7 +4,11 @@ import { Progress } from "components/dashboard/ui/progress"
 import { CreateBudgetModal } from "components/dashboard/create-budget-modal"
 import { useState } from "react"
 import { Button } from "components/dashboard/ui/button"
+import { Budget } from "@/types/budget"
 
+interface BudgetCardsProps {
+  budgets: Budget[]
+}
 const budgetData = [
   {
     id: 1,
@@ -63,7 +67,7 @@ const budgetData = [
   },
 ]
 
-export function BudgetCards() {
+export function BudgetCards({ budgets }: BudgetCardsProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const getBudgetStatus = (spent: number, budget: number) => {

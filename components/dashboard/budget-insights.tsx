@@ -1,7 +1,12 @@
 "use client"
+import { Budget } from "@/types/budget"
 import { TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 
-export function BudgetInsights() {
+
+interface BudgetInsightsProps {
+  budgets: Budget[]
+}
+export function BudgetInsights({ budgets }: BudgetInsightsProps) {
   const insights = [
     {
       type: "success",
