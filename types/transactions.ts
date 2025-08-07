@@ -26,6 +26,8 @@ export interface CreateTransactionDto {
   date?: string;            // opcional en tu DTO
 }
 
+export interface UpdateTransactionDto extends Partial<CreateTransactionDto> {}
+
 export interface SummaryDTO {
   totalIncome: number;
   totalExpenses: number;

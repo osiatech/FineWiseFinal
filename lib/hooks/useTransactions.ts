@@ -1,7 +1,7 @@
 // lib/hooks/useTransactions.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../api';
-import type { Transaction, CreateTransactionDto, SummaryDTO, TransactionType } from '@/types/transactions';
+import type { Transaction, CreateTransactionDto, SummaryDTO, TransactionType, UpdateTransactionDto } from '@/types/transactions';
 
 // GET /transactions/My-transactions
 export const useTransactions = (type?: TransactionType) =>
@@ -37,3 +37,28 @@ export const useTransactionSummary = () =>
       return data;
     },
   });
+
+// PATCH /transactions/update-transaction/:id
+export const useUpdateTransaction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, dto }: { id: number; dto: Partial<UpdateTransactionDto> }) =>
+      api.patch(`FineWise/transactions/update-transaction/${id}`, dto),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["transactions", "summary"] });
+    },
+  });
+};
+
+// DELETE /transactions/delete-transaction/:id
+export const useDeleteTransaction = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => api.delete(`FineWise/transactions/delete-transaction/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["transactions", "summary"] });
+    },
+  });
+};
