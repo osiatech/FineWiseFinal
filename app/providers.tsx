@@ -1,11 +1,17 @@
+// app/providers.tsx
 "use client";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+// import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactNode, useState } from "react";
 
-import { ThemeProvider } from "next-themes";
+export default function Providers({ children }: { children: ReactNode }) {
+  // << IMPORTANTE >>: un solo QueryClient por sesión
+  const [queryClient] = useState(() => new QueryClient());
 
-export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" enableSystem={false} defaultTheme="light">
+    <QueryClientProvider client={queryClient}>
       {children}
-    </ThemeProvider>
+      {/* {process.env.NODE_ENV === "development" && <ReactQueryDevtools initialIsOpen={false} />} */}
+    </QueryClientProvider>
   );
 }

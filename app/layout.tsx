@@ -3,7 +3,7 @@ import "../styles/index.css";
 import AppShell from "app/AppShell";
 import { ThemeProvider } from "lib/contexts/theme-context";
 import { LanguageProvider } from "lib/contexts/language-context";
-import { Providers } from "./providers";
+import  Providers  from "./providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
