@@ -24,7 +24,7 @@ function Sidebar() {
   const menuNavigation = [
     { name: t("nav.dashboard"), href: "/dashboard", icon: Home },
     { name: t("nav.budget"), href: "/dashboard/budget", icon: Wallet },
-    { name: t("nav.accounts"), href: "/dashboard/accounts", icon: CreditCard },
+    // { name: t("nav.accounts"), href: "/dashboard/accounts", icon: CreditCard },
     { name: t("nav.transactions"), href: "/dashboard/transactions", icon: ArrowUpDown },
     { name: t("nav.charts"), href: "/dashboard/charts", icon: PieChart },
     { name: t("nav.aiReport"), href: "/dashboard/ai-report", icon: Brain },
@@ -69,7 +69,7 @@ function Sidebar() {
 
         {/* Preferences Section */}
         <div className="px-6 py-4 border-t border-gray-100 mt-auto">
-          <h3 className="mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">PREFERENCES</h3>
+          <h3 className="mb-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">PREFERENCIAS</h3>
 
           {/* Settings */}
           <a

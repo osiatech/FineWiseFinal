@@ -73,8 +73,8 @@ export function BudgetCards() {
             <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-sm">
               <Plus className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="font-semibold text-gray-900">Create New Budget</h3>
-            <p className="text-sm text-gray-500">Set up a new spending category</p>
+            <h3 className="font-semibold text-gray-900">Crea Tu Nuevo Presupuesto</h3>
+            <p className="text-sm text-gray-500">Crea un nuevo presupuesto</p>
           </div>
         </div>
 

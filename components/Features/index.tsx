@@ -10,7 +10,7 @@ const Features = () => {
           <SectionTitle
             title="Principales Funcionalidades"
             paragraph="Fine Wise es una app de fiananzas personales, la cual consta de
-            distintas funcionalidades................"
+            distintas funcionalidades"
             center
           />
 

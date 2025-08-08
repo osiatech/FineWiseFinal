@@ -18,6 +18,7 @@ import { useCreateTransaction } from "@/lib/hooks/useTransactions";
 interface AddTransactionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSave: () => void;
 }
 
 /** formData tipado correctamente */

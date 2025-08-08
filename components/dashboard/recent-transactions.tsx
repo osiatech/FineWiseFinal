@@ -14,7 +14,7 @@ export function RecentTransactions() {
   const { t } = useLanguage();
   const { data: all = [], isLoading } = useTransactions();
 
-  // 👉 Ordena y limita
+  
   const transactions = [...all]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 5);
@@ -32,8 +32,8 @@ export function RecentTransactions() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="personal">personal</SelectItem>
-            <SelectItem value="business">negocio</SelectItem>
+            {/* <SelectItem value="personal">personal</SelectItem>
+            <SelectItem value="business">negocio</SelectItem> */}
             <SelectItem value="all">todas</SelectItem>
           </SelectContent>
         </Select>
