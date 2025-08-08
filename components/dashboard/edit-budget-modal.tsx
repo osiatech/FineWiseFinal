@@ -10,9 +10,9 @@ import { Input } from "components/dashboard/ui/input";
 import { Label } from "components/dashboard/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from
   "components/dashboard/ui/select";
-import { useState } from "react";
-import { useCreateBudget } from "@/lib/hooks/useBudgets";
-import { CategoryBudgetType } from "@/types/budgets";
+import { useEffect, useState } from "react";
+import { useUpdateBudget, useDeleteBudget } from "@/lib/hooks/useBudgets";
+import { Budget, CategoryBudgetType } from "@/types/budgets";
 
 const categoryOptions: { value: CategoryBudgetType; label: string }[] = [
   { value: CategoryBudgetType.HOUSING,        label: "Housing" },
@@ -26,41 +26,47 @@ const categoryOptions: { value: CategoryBudgetType; label: string }[] = [
   { value: CategoryBudgetType.DEBT_REPAYMENT, label: "Debt Repayment" },
 ];
 
-export function CreateBudgetModal({
-  open,
-  onOpenChange,
+export function EditBudgetModal({
+  budget,
+  onClose,
 }: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
+  budget: Budget | null;
+  onClose: () => void;
 }) {
-  const { mutate: createBudget, isPending } = useCreateBudget();
-  const [form, setForm] = useState({
-    category: "housing" as CategoryBudgetType,
-    amountPlanned: "",
-    periodStart: "",
-    periodEnd: "",
-  });
+  const [form, setForm] = useState<Partial<Budget>>({});
+  const { mutate: updateBudget, isPending } = useUpdateBudget();
+  const { mutate: deleteBudget } = useDeleteBudget();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (budget) setForm(budget);
+  }, [budget]);
+
+  if (!budget) return null;
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    createBudget(
+    updateBudget(
       {
-        ...form,
-        amountPlanned: Number(form.amountPlanned),
+        id: budget.id,
+        dto: {
+          category: form.category as CategoryBudgetType,
+          amountPlanned: Number(form.amountPlanned),
+          periodStart: form.periodStart,
+          periodEnd: form.periodEnd,
+        },
       },
-      { onSuccess: () => onOpenChange(false) },
+      { onSuccess: onClose },
     );
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Create Budget</DialogTitle>
+          <DialogTitle>Edit Budget</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* category */}
+        <form onSubmit={submit} className="space-y-4">
           <div className="space-y-2">
             <Label>Category</Label>
             <Select
@@ -80,20 +86,20 @@ export function CreateBudgetModal({
             </Select>
           </div>
 
-          {/* amount */}
           <div className="space-y-2">
             <Label>Amount</Label>
             <Input
               type="number"
               min={0}
               step="0.01"
-              value={form.amountPlanned}
-              onChange={(e) => setForm({ ...form, amountPlanned: e.target.value })}
-              required
+              value={form.amountPlanned ?? ""}
+              onChange={(e) =>
+                    setForm({ ...form, amountPlanned: Number(e.target.value) })
+                }
+                required
             />
           </div>
 
-          {/* period */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Start</Label>
@@ -115,13 +121,23 @@ export function CreateBudgetModal({
             </div>
           </div>
 
-          <div className="flex justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="mr-2">
-              Cancel
+          <div className="flex justify-between pt-2">
+            <Button
+              variant="destructive"
+              onClick={() =>
+                deleteBudget(budget.id, { onSuccess: onClose })
+              }
+            >
+              Delete
             </Button>
-            <Button type="submit" disabled={isPending}>
-              Create
-            </Button>
+            <div>
+              <Button variant="outline" onClick={onClose} className="mr-2">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isPending}>
+                Save
+              </Button>
+            </div>
           </div>
         </form>
       </DialogContent>
