@@ -24,10 +24,11 @@ function Sidebar() {
   const menuNavigation = [
     { name: t("nav.dashboard"), href: "/dashboard", icon: Home },
     { name: t("nav.budget"), href: "/dashboard/budget", icon: Wallet },
-    { name: t("nav.debts"), href: "/dashboard/debts", icon: CreditCard },
+    { name: t("Deudas"), href: "/dashboard/debts", icon: CreditCard },
     // { name: t("nav.accounts"), href: "/dashboard/accounts", icon: CreditCard },
     { name: t("nav.transactions"), href: "/dashboard/transactions", icon: ArrowUpDown },
-    { name: t("nav.charts"), href: "/dashboard/charts", icon: PieChart },
+    { name: t("Goals"), href: "/dashboard/Goals", icon: PieChart },
+    { name: t("nav.charts"), href: "/dashboard/charts", icon: Sun },
     { name: t("nav.aiReport"), href: "/dashboard/ai-report", icon: Brain },
   ]
 
