@@ -21,10 +21,7 @@ export default function Dashboard() {
     }
   }, []);
 
-   const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/signin");
-  };
+   
 
   return (
     <DashboardLayout>
@@ -47,11 +44,7 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
-      <div>
-        <button onClick={handleLogout} className="p-2 bg-red-500 text-white rounded">
-        Cerrar sesión
-        </button>
-      </div>
+      
       
     </DashboardLayout>
   )

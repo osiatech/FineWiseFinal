@@ -24,6 +24,7 @@ function Sidebar() {
   const menuNavigation = [
     { name: t("nav.dashboard"), href: "/dashboard", icon: Home },
     { name: t("nav.budget"), href: "/dashboard/budget", icon: Wallet },
+    { name: t("nav.debts"), href: "/dashboard/debts", icon: CreditCard },
     // { name: t("nav.accounts"), href: "/dashboard/accounts", icon: CreditCard },
     { name: t("nav.transactions"), href: "/dashboard/transactions", icon: ArrowUpDown },
     { name: t("nav.charts"), href: "/dashboard/charts", icon: PieChart },
