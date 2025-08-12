@@ -1,10 +1,18 @@
-"use client"
-import { useState } from "react"
-import { Button } from "components/dashboard/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "components/dashboard/ui/select"
-import { Badge } from "components/dashboard/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "components/dashboard/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/dashboard/ui/tabs"
+// components/dashboard/charts-view.tsx
+"use client";
+
+import { useMemo, useState } from "react";
+import { Button } from "components/dashboard/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "components/dashboard/ui/select";
+import { Badge } from "components/dashboard/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "components/dashboard/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "components/dashboard/ui/tabs";
 import {
   Plus,
   Settings,
@@ -19,24 +27,152 @@ import {
   Activity,
   Eye,
   EyeOff,
-} from "lucide-react"
-import { AddChartModal } from "components/dashboard/add-chart-modal"
-import { ExpensesPieChart } from "components/dashboard/charts/expenses-pie-chart"
-import { IncomeVsExpensesChart } from "components/dashboard/charts/income-vs-expenses-chart"
-import { MonthlyTrendChart } from "components/dashboard/charts/monthly-trend-chart"
-import { BudgetProgressChart } from "components/dashboard/charts/budget-progress-chart"
-import { CategoryBreakdownChart } from "components/dashboard/charts/category-breakdown-chart"
-import { AccountBalanceChart } from "components/dashboard/charts/account-balance-chart"
-import { CashFlowChart } from "components/dashboard/charts/cash-flow-chart"
-import { SavingsGoalChart } from "components/dashboard/charts/savings-goal-chart"
+} from "lucide-react";
 
+import { Progress } from "components/dashboard/ui/progress"
+
+
+import { AddChartModal } from "components/dashboard/add-chart-modal";
+
+// === Charts (presentacionales) ===
+import { ExpensesPieChart } from "components/dashboard/charts/expenses-pie-chart";
+import { IncomeVsExpensesChart } from "components/dashboard/charts/income-vs-expenses-chart";
+import { MonthlyTrendChart } from "components/dashboard/charts/monthly-trend-chart";
+import { BudgetProgressChart } from "components/dashboard/charts/budget-progress-chart";
+// 👇 Fix: este archivo exporta por defecto, así que se importa SIN llaves
+import CategoryBreakdownChart from "components/dashboard/charts/category-breakdown-chart";
+import { AccountBalanceChart } from "components/dashboard/charts/account-balance-chart";
+import { CashFlowChart } from "components/dashboard/charts/cash-flow-chart";
+import { SavingsGoalChart } from "components/dashboard/charts/savings-goal-chart";
+
+// === DATA HOOKS reales ===
+import { useTransactions } from "@/lib/hooks/useTransactions";
+
+/* ---------------------------------------------------------------------------
+   Helpers de rango de fechas y formato
+--------------------------------------------------------------------------- */
+function getStartDateFromRange(range: string): Date | null {
+  const now = new Date();
+  const d = new Date(now);
+  switch (range) {
+    case "1month":
+      d.setMonth(d.getMonth() - 1);
+      return d;
+    case "3months":
+      d.setMonth(d.getMonth() - 3);
+      return d;
+    case "6months":
+      d.setMonth(d.getMonth() - 6);
+      return d;
+    case "1year":
+      d.setFullYear(d.getFullYear() - 1);
+      return d;
+    default:
+      return null; // "all"
+  }
+}
+
+function yyyymm(date: Date) {
+  const y = date.getFullYear();
+  const m = `${date.getMonth() + 1}`.padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+function getMonthsBackLabels(range: string): string[] {
+  // Devuelve etiquetas "YYYY-MM" desde más antiguo -> actual
+  let months = 6;
+  if (range === "1month") months = 1;
+  if (range === "3months") months = 3;
+  if (range === "6months") months = 6;
+  if (range === "1year") months = 12;
+  if (range === "all") months = 12; // por defecto, 12 para "all"
+
+  const labels: string[] = [];
+  const d = new Date();
+  d.setDate(1); // inicio de mes para consistencia
+
+  for (let i = months - 1; i >= 0; i--) {
+    const copy = new Date(d);
+    copy.setMonth(d.getMonth() - i);
+    labels.push(yyyymm(copy));
+  }
+  return labels;
+}
+
+/* ---------------------------------------------------------------------------
+   Hook: gastos por categoría (para charts de pie/breakdown)
+--------------------------------------------------------------------------- */
+function useExpensesByCategory(timeRange: string) {
+  const { data: tx = [], isLoading } = useTransactions();
+  const start = getStartDateFromRange(timeRange);
+
+  const data = useMemo(() => {
+    const map = new Map<string, number>();
+    (tx as any[]).forEach((t) => {
+      // Ajusta estos campos a tu shape real de transacción
+      const date = new Date(t.date ?? t.createdAt ?? Date.now());
+      const okRange = !start || date >= start;
+      if (!okRange) return;
+
+      // consideramos "expense" como gasto; si usas otro campo/código, cámbialo
+      if ((t.type ?? t.transactionType) !== "expense") return;
+
+      const cat = t.category ?? "Otros";
+      map.set(cat, (map.get(cat) ?? 0) + Number(t.amount ?? 0));
+    });
+
+    return Array.from(map, ([label, value]) => ({ label, value }));
+  }, [tx, start]);
+
+  return { data, isLoading };
+}
+
+/* ---------------------------------------------------------------------------
+   Hook: ingresos vs gastos por mes (para chart comparativo)
+--------------------------------------------------------------------------- */
+function useIncomeVsExpenses(timeRange: string) {
+  const { data: tx = [], isLoading } = useTransactions();
+  const labels = getMonthsBackLabels(timeRange); // YYYY-MM
+  const { income, expenses } = useMemo(() => {
+    const incMap = new Map<string, number>();
+    const expMap = new Map<string, number>();
+
+    labels.forEach((l) => {
+      incMap.set(l, 0);
+      expMap.set(l, 0);
+    });
+
+    (tx as any[]).forEach((t) => {
+      const date = new Date(t.date ?? t.createdAt ?? Date.now());
+      const key = yyyymm(date);
+      if (!incMap.has(key)) return; // fuera del rango que graficamos
+
+      const amt = Number(t.amount ?? 0);
+      const kind = t.type ?? t.transactionType; // "income" | "expense"
+
+      if (kind === "income") incMap.set(key, (incMap.get(key) ?? 0) + amt);
+      else if (kind === "expense") expMap.set(key, (expMap.get(key) ?? 0) + amt);
+    });
+
+    return {
+      income: labels.map((l) => incMap.get(l) ?? 0),
+      expenses: labels.map((l) => expMap.get(l) ?? 0),
+    };
+  }, [tx, labels]);
+
+  return { labels, income, expenses, isLoading };
+}
+
+/* ---------------------------------------------------------------------------
+   Config de widgets
+--------------------------------------------------------------------------- */
 interface ChartWidget {
-  id: string
-  type: string
-  title: string
-  size: "small" | "medium" | "large"
-  visible: boolean
-  position: number
+  id: string;
+  type: string;
+  title: string;
+  size: "small" | "medium" | "large";
+  visible: boolean;
+  position: number;
 }
 
 const defaultCharts: ChartWidget[] = [
@@ -48,75 +184,99 @@ const defaultCharts: ChartWidget[] = [
   { id: "6", type: "account-balance", title: "Account Balances", size: "small", visible: true, position: 6 },
   { id: "7", type: "cash-flow", title: "Cash Flow Analysis", size: "large", visible: true, position: 7 },
   { id: "8", type: "savings-goal", title: "Savings Goal Progress", size: "small", visible: true, position: 8 },
-]
+];
 
+/* ---------------------------------------------------------------------------
+   Vista principal
+--------------------------------------------------------------------------- */
 export function ChartsView() {
-  const [charts, setCharts] = useState<ChartWidget[]>(defaultCharts)
-  const [isAddChartOpen, setIsAddChartOpen] = useState(false)
-  const [timeRange, setTimeRange] = useState("6months")
-  const [viewMode, setViewMode] = useState("grid")
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [charts, setCharts] = useState<ChartWidget[]>(defaultCharts);
+  const [isAddChartOpen, setIsAddChartOpen] = useState(false);
+  const [timeRange, setTimeRange] = useState("6months");
+  const [viewMode, setViewMode] = useState("grid");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
-  const visibleCharts = charts.filter((chart) => chart.visible).sort((a, b) => a.position - b.position)
+  // Datos reales para algunos charts
+  const { data: catData, isLoading: catLoading } = useExpensesByCategory(timeRange);
+  const { labels, income, expenses, isLoading: iveLoading } = useIncomeVsExpenses(timeRange);
+
+  const visibleCharts = charts.filter((chart) => chart.visible).sort((a, b) => a.position - b.position);
 
   const toggleChartVisibility = (id: string) => {
-    setCharts(charts.map((chart) => (chart.id === id ? { ...chart, visible: !chart.visible } : chart)))
-  }
+    setCharts((prev) => prev.map((c) => (c.id === id ? { ...c, visible: !c.visible } : c)));
+  };
 
   const removeChart = (id: string) => {
-    setCharts(charts.filter((chart) => chart.id !== id))
-  }
+    setCharts((prev) => prev.filter((c) => c.id !== id));
+  };
 
   const addChart = (chartData: Omit<ChartWidget, "id" | "position">) => {
     const newChart: ChartWidget = {
       ...chartData,
       id: Date.now().toString(),
       position: charts.length + 1,
-    }
-    setCharts([...charts, newChart])
-  }
+    };
+    setCharts((prev) => [...prev, newChart]);
+  };
 
   const getChartComponent = (chart: ChartWidget) => {
     switch (chart.type) {
       case "expenses-pie":
-        return <ExpensesPieChart />
+        // Le pasamos data real; el `as any` evita que TS se queje si el chart aún no tipa props
+        return <ExpensesPieChart {...({ data: catData, loading: catLoading } as any)} />;
+
       case "income-vs-expenses":
-        return <IncomeVsExpensesChart />
+        return (
+          <IncomeVsExpensesChart
+            {...({
+              series: [
+                { name: "Income", data: income },
+                { name: "Expenses", data: expenses },
+              ],
+              categories: labels,
+              loading: iveLoading,
+            } as any)}
+          />
+        );
+
       case "monthly-trend":
-        return <MonthlyTrendChart />
+        return <MonthlyTrendChart />;
+
       case "budget-progress":
-        return <BudgetProgressChart />
+        return <BudgetProgressChart />;
+
       case "category-breakdown":
-        return <CategoryBreakdownChart />
-      case "account-balance":
-        return <AccountBalanceChart />
+        return <CategoryBreakdownChart {...({ data: catData, loading: catLoading } as any)} />;
+
       case "cash-flow":
-        return <CashFlowChart />
+        return <CashFlowChart />;
+
       case "savings-goal":
-        return <SavingsGoalChart />
+        return <SavingsGoalChart />;
+
       default:
-        return <div>Chart not found</div>
+        return <div>Chart not found</div>;
     }
-  }
+  };
 
   const getGridClass = (size: string) => {
     switch (size) {
       case "small":
-        return "col-span-1"
+        return "col-span-1";
       case "medium":
-        return "col-span-1 md:col-span-2"
+        return "col-span-1 md:col-span-2";
       case "large":
-        return "col-span-1 md:col-span-2 lg:col-span-3"
+        return "col-span-1 md:col-span-2 lg:col-span-3";
       default:
-        return "col-span-1"
+        return "col-span-1";
     }
-  }
+  };
 
   const chartStats = {
     totalCharts: charts.length,
     visibleCharts: visibleCharts.length,
     hiddenCharts: charts.length - visibleCharts.length,
-  }
+  };
 
   return (
     <div className="flex-1 p-6 space-y-6 overflow-y-auto">
@@ -126,7 +286,7 @@ export function ChartsView() {
         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
           Analytics Dashboard
         </h1>
-        <p className="text-gray-600 mt-2">Visualize your financial data with interactive charts and insights</p>
+        <p className="text-gray-600 mt-2">Visualiza tus datos financieros con gráficos e insights.</p>
       </div>
 
       {/* Stats Cards */}
@@ -181,7 +341,7 @@ export function ChartsView() {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Data Points</p>
-                <p className="text-xl font-bold text-purple-600">1,247</p>
+                <p className="text-xl font-bold text-purple-600">—</p>
               </div>
             </div>
           </CardContent>
@@ -294,9 +454,9 @@ export function ChartsView() {
                       {chart.type.includes("pie") && <PieChart className="h-5 w-5 text-blue-600" />}
                       {chart.type.includes("line") && <LineChart className="h-5 w-5 text-blue-600" />}
                       {chart.type.includes("bar") && <BarChart3 className="h-5 w-5 text-blue-600" />}
-                      {!chart.type.includes("pie") && !chart.type.includes("line") && !chart.type.includes("bar") && (
-                        <TrendingUp className="h-5 w-5 text-blue-600" />
-                      )}
+                      {!chart.type.includes("pie") &&
+                        !chart.type.includes("line") &&
+                        !chart.type.includes("bar") && <TrendingUp className="h-5 w-5 text-blue-600" />}
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900">{chart.title}</h3>
@@ -342,5 +502,5 @@ export function ChartsView() {
 
       <AddChartModal open={isAddChartOpen} onOpenChange={setIsAddChartOpen} onAddChart={addChart} />
     </div>
-  )
+  );
 }
